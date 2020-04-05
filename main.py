@@ -10,19 +10,19 @@ def root():
 
 @app.get("/method")
 def root():
-    return {"message": "GET"}
+    return {"method": "GET"}
 
 @app.put("/method")
 def root():
-    return {"message": "POST"}
+    return {"method": "POST"}
 
 @app.post("/method")
 def root():
-    return {"message": "PUT"}
+    return {"method": "PUT"}
 
 @app.delete("/method")
 def root():
-    return {"message": "DELETE"}
+    return {"method": "DELETE"}
 
 @app.get("/hello/{name}")
 async def read_item(name: str):
