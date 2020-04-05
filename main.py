@@ -56,4 +56,4 @@ async def return_patient(pk: int):
     if pk in app.patients.keys():
     	return app.patients[pk]
     else:
-    	raise HTTPException(status_code=404, detail="Item not found")
+    	return 404
