@@ -45,8 +45,8 @@ class GiveMeSomethingResp(BaseModel):
 @app.post("/patient", response_model=GiveMeSomethingResp)
 def receive_patient(rq: GiveMeSomethingRq):
 	if app.ID not in app.patients.keys():
-		app.ID += 1
 		app.patients[app.ID] = rq.dict()
+		app.ID += 1
 	return GiveMeSomethingResp(id=app.ID, patient=rq.dict())
 
 ### TASK 4 ###########################################################
