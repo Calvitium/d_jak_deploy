@@ -14,11 +14,11 @@ def root():
 
 @app.put("/method")
 def root():
-    return {"method": "POST"}
+    return {"method": "PUT"}
 
 @app.post("/method")
 def root():
-    return {"method": "PUT"}
+    return {"method": "POST"}
 
 @app.delete("/method")
 def root():
