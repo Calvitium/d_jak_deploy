@@ -1,8 +1,11 @@
 # main.py
 
 from fastapi import FastAPI
+from pydantic import BaseModel
 
 app = FastAPI()
+app.visited=0
+
 
 
 ### TASK 1 ###########################################################
@@ -37,14 +40,14 @@ class GiveMeSomethingRq(BaseModel):
 
 class GiveMeSomethingResp(BaseModel):
 	id: int
-	patient: Dict
+	patient: dict
 
-visited=0
+
 
 @app.post("/patient", response_model=GiveMeSomethingResp)
 def receive_patient(rq: GiveMeSomethingRq):
-	visited += 1
-	return GiveMeSomethingResp(id=visited, patient=rq.dict())
+	app.visited += 1
+	return GiveMeSomethingResp(id=app.visited, patient=rq.dict())
 	
 @app.get("/hello/{name}")
 async def read_item(name: str):
