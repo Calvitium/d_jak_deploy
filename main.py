@@ -1,11 +1,11 @@
 # main.py
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 app = FastAPI()
-app.visited=0
-
+app.ID = 0
+app.patients = {}
 
 
 ### TASK 1 ###########################################################
@@ -42,13 +42,18 @@ class GiveMeSomethingResp(BaseModel):
 	id: int
 	patient: dict
 
-
-
 @app.post("/patient", response_model=GiveMeSomethingResp)
 def receive_patient(rq: GiveMeSomethingRq):
-	app.visited += 1
-	return GiveMeSomethingResp(id=app.visited, patient=rq.dict())
+	if app.ID not in app.patients.keys():
+		app.ID += 1
+		app.patients[app.ID] = rq.dict()
+	return GiveMeSomethingResp(id=app.ID, patient=rq.dict())
+
+### TASK 4 ###########################################################
 	
-@app.get("/hello/{name}")
-async def read_item(name: str):
-    return f"Hello {name}"
+@app.get("/patient/{pk}")
+async def return_patient(pk: int):
+    if pk in app.patients.keys():
+    	return app.patients[pk]
+    else:
+    	raise HTTPException(status_code=404, detail="Item not found")
