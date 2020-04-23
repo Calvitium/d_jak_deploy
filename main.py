@@ -1,4 +1,9 @@
 # main.py
+######################################################################
+######################################################################
+#####################       ASSIGNMENT 1       #######################
+######################################################################
+######################################################################
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -57,3 +62,115 @@ async def return_patient(pk: int):
     	return app.patients[pk]
     else:
     	raise HTTPException(status_code=204, detail="Item not found")
+
+######################################################################
+######################################################################
+#####################       ASSIGNMENT 3       #######################
+######################################################################
+######################################################################
+
+
+### TASK 1 ###########################################################
+
+@app.get("/welcome")
+def do_welcome():
+	return {"message": "Sram Ci na klatę"}
+
+
+### TASK 2 ###########################################################
+
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from fastapi import Request, Query, Cookie, Response
+from typing import List
+from hashlib import sha256
+
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/request_query_string_discovery/")
+def read_item(request: Request):
+    print(f"{request.query_params=}")
+    return request.query_params
+
+
+@app.get("/v2/request_query_string_discovery/")
+def read_items(u: str = Query("default"), q: List[str] = Query(None)):
+    query_items = {"q": q, "u": u}
+    return query_items
+
+@app.get("/v2", response_class=HTMLResponse)
+def home():
+    return """
+    <html>
+        <head>
+            <title>Some HTML in here</title>
+        </head>
+        <body>
+            <h1>Look ma! HTML!</h1>
+        </body>
+    </html>
+    """
+
+
+@app.get("/items/{id}")
+def read_item(request: Request, id: str):
+    return templates.TemplateResponse("item.html", {"request": request, "my_string": "Wheeeee!", "my_list": [0,1,2,3,4,5]})
+
+
+@app.get("/hello/")
+def hello():
+    return {"hello_world": "hello_world"}
+
+
+@app.get("/simple_path_tmpl/{sample_variable}")
+def simple_path_tmpl(sample_variable: str):
+    print(f"{sample_variable=}")
+    print(type(sample_variable))
+    return {"sample_variable": sample_variable}
+
+
+objects = {
+    1: {"field_a": "a", "field_b": "b"},
+    2: {"field_a": "a", "field_b": "b"},
+    3: {"field_a": "a", "field_b": "b"},
+    # .... #
+}
+
+
+
+@app.get("/v2/simple_path_tmpl/{obj_id}/{field}")
+def simple_path_tmpl(obj_id: int, field: str):
+    print(f"{obj_id=}")
+    print(f"{field=}")
+    return {"field": objects.get(obj_id, {}).get(field)}
+
+
+@app.get("/v2/items/")
+def read_items(*, ads_id: str = Cookie(None)):
+    return {"ads_id": ads_id}
+
+
+@app.post("/cookie-and-object/")
+def create_cookie(response: Response):
+    response.set_cookie(key="fakesession", value="fake-cookie-session-value")
+    return {"message": "Come to the dark side, we have cookies"}
+
+
+app.secret_key = "very constatn and random secret, best 64 characters"
+
+session_tokens = []
+
+@app.post("/login/")
+def create_cookie(user: str, password: str, response: Response):
+    session_token = sha256(bytes(f"{user}{password}{app.secret_key}")).hexdigest()
+    session_tokens.append(session_token)
+    response.set_cookie(key="session_token", value=session_token)
+    return {"message": "Welcome"}
+
+
+
+@app.get("/data/")
+def create_cookie(*, response: Response, session_token: str = Cookie(None)):
+    if session_token not in session_tokens:
+        raise HTTPException(status_code=403, detail="Unathorised")
+    response.set_cookie(key="session_token", value=session_token)
