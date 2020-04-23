@@ -78,6 +78,26 @@ def do_welcome():
 
 
 ### TASK 2 ###########################################################
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi import Depends
+import secrets
+
+security = HTTPBasic()
+
+
+@app.post("/login")
+def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = secrets.compare_digest(credentials.username, "trudnY")
+    correct_password = secrets.compare_digest(credentials.password, "PaC13Nt")
+    if not (correct_username and correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return do_welcome()
+
+
 
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
@@ -160,12 +180,6 @@ app.secret_key = "very constatn and random secret, best 64 characters"
 
 session_tokens = []
 
-@app.post("/login/")
-def create_cookie(user: str, password: str, response: Response):
-    session_token = sha256(bytes(f"{user}{password}{app.secret_key}")).hexdigest()
-    session_tokens.append(session_token)
-    response.set_cookie(key="session_token", value=session_token)
-    return {"message": "Welcome"}
 
 
 
