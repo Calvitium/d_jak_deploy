@@ -81,6 +81,7 @@ def do_welcome():
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi import Depends
 import secrets
+from starlette.responses import RedirectResponse
 
 security = HTTPBasic()
 
@@ -95,8 +96,9 @@ def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Basic"},
         )
-    return do_welcome()
+    return RedirectResponse('/welcome')
 
+### TASK 3 ###########################################################
 
 
 from fastapi.templating import Jinja2Templates
