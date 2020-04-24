@@ -95,7 +95,11 @@ def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
     correct_password = secrets.compare_digest(credentials.password, "PaC13Nt")
     if not (correct_username and correct_password):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
-    return RedirectResponse(url='/welcome', status_code=302)	
+    session_token = sha256(bytes(f"trudnYPaC13Nt{app.secret_key}")).hexdigest()
+    response.set_cookie(key="session_token", value=session_token)
+    response.status_code=307
+    session_tokens.append(session_token)
+    return RedirectResponse(url='/welcome', status_code=307)	
 
 ### TASK 3 ###########################################################
 
