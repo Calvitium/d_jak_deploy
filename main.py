@@ -71,11 +71,18 @@ async def return_patient(pk: int):
 ######################################################################
 
 
-### TASK 1 ###########################################################
+### TASK 1 & 4 #######################################################
+from fastapi.templating import Jinja2Templates
+from fastapi import Cookie
+
+
+templates = Jinja2Templates(directory="templates")
 
 @app.get("/welcome")
-def do_welcome():
-	return {"message": "Sram Ci na klatę"}
+def do_welcome(session_token: str = Cookie(None)):
+	if session_token not in app.session_tokens:
+		raise HTTPException(status_code=401, detail="Unathorised")
+	return templates.TemplateResponse("item.html")
 
 
 ### TASK 2 ###########################################################
@@ -101,7 +108,6 @@ def get_current_user(response: Response, credentials: HTTPBasicCredentials = Dep
     response.status_code = status.HTTP_302_FOUND 
 
 ### TASK 3 ###########################################################
-from fastapi import Cookie
 
 @app.post("/logout")
 def logout(*, response: Response, session_token: str = Cookie(None)):
