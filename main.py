@@ -98,7 +98,7 @@ def get_current_user(response: Response, credentials: HTTPBasicCredentials = Dep
     response.set_cookie(key="session_token", value=session_token)
     session_tokens.append(session_token)
     response.headers["Location"] = "/welcome"
-    return response
+    response.status_code = 302
 
 ### TASK 3 ###########################################################
 from fastapi import Cookie
