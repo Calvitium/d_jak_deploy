@@ -98,7 +98,7 @@ def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
     session_token = sha256(bytes(f"trudnYPaC13Nt{app.secret_key}")).hexdigest()
     response.set_cookie(key="session_token", value=session_token)
     session_tokens.append(session_token)
-    return RedirectResponse('/welcome')	
+    return RedirectResponse(url='/welcome', status_code=302)	
 
 ### TASK 3 ###########################################################
 
