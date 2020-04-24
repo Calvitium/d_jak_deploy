@@ -96,16 +96,17 @@ def get_current_user(response: Response, credentials: HTTPBasicCredentials = Dep
     if not (correct_username and correct_password):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
     session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}", encoding='utf8')).hexdigest()
+    response = RedirectResponse(url='/welcome')	
     response.set_cookie(key="session_token", value=session_token)
     session_tokens.append(session_token)
-    return RedirectResponse(url='/welcome')	
+    return response
 
 ### TASK 3 ###########################################################
 from fastapi import Cookie
 
 @app.post("/logout")
 def logout(*, response: Response, session_token: str = Cookie(None)):
-	if(session_token not in session_tokens):
+	if session_token not in session_tokens:
 		raise HTTPException(status_code=401, detail="Unathorised")
 	session_tokens.delete(session_token)
 	return RedirectResponse("/")
@@ -115,30 +116,11 @@ def logout(*, response: Response, session_token: str = Cookie(None)):
 
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-from fastapi import Request, Query, Cookie, Response
+from fastapi import Request
 from typing import List
 from hashlib import sha256
 
 templates = Jinja2Templates(directory="templates")
-
-
-@app.get("/v2/request_query_string_discovery/")
-def read_items(u: str = Query("default"), q: List[str] = Query(None)):
-    query_items = {"q": q, "u": u}
-    return query_items
-
-@app.get("/v2", response_class=HTMLResponse)
-def home():
-    return """
-    <html>
-        <head>
-            <title>Some HTML in here</title>
-        </head>
-        <body>
-            <h1>Look ma! HTML!</h1>
-        </body>
-    </html>
-    """
 
 
 @app.get("/items/{id}")
