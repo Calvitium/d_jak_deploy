@@ -73,7 +73,7 @@ async def return_patient(pk: int):
 
 ### TASK 1 & 4 #######################################################
 from fastapi.templating import Jinja2Templates
-
+from fastapi import Cookie
 
 templates = Jinja2Templates(directory="templates")
 
@@ -81,7 +81,7 @@ templates = Jinja2Templates(directory="templates")
 def do_welcome(session_token: str = Cookie(None)):
 	if session_token not in app.session_tokens:
 		raise HTTPException(status_code=401, detail="Unathorised")
-	return templates.TemplateResponse("item.html", "user": "trudnY")
+	return templates.TemplateResponse("item.html", {"user": "trudnY"})
 
 
 ### TASK 2 ###########################################################
