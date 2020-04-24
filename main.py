@@ -81,7 +81,7 @@ def do_welcome():
 from hashlib import sha256
 from starlette.responses import RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi import Depends
+from fastapi import Depends, Response
 import secrets
 
 security = HTTPBasic()
@@ -90,18 +90,18 @@ app.secret_key = "very constatn and random secret, best 64 characters, here it i
 session_tokens = []
 
 @app.post("/login")
-def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
+def get_current_user(response: Response, credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = secrets.compare_digest(credentials.username, "trudnY")
     correct_password = secrets.compare_digest(credentials.password, "PaC13Nt")
     if not (correct_username and correct_password):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
-    session_token = sha256(bytes(f"trudnYPaC13Nt{app.secret_key}")).hexdigest()
+    session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}", encoding='utf8')).hexdigest()
     response.set_cookie(key="session_token", value=session_token)
-    response.status_code=307
     session_tokens.append(session_token)
-    return RedirectResponse(url='/welcome', status_code=307)	
+    return RedirectResponse(url='/welcome')	
 
 ### TASK 3 ###########################################################
+from fastapi import Cookie
 
 @app.post("/logout")
 def logout(response: Response, session_token: str = Cookie(None)):
@@ -109,6 +109,9 @@ def logout(response: Response, session_token: str = Cookie(None)):
 		raise HTTPException(status_code=401, detail="Unathorised")
 	session_tokens.delete(session_token)
 	return RedirectResponse("/")
+
+### TASK 4 ###########################################################
+
 
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
