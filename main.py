@@ -78,13 +78,16 @@ def do_welcome():
 
 
 ### TASK 2 ###########################################################
+from hashlib import sha256
+from starlette.responses import RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi import Depends
 import secrets
-from starlette.responses import RedirectResponse
 
 security = HTTPBasic()
+app.secret_key = "very constatn and random secret, best 64 characters, here it is."
 
+session_tokens = []
 
 @app.post("/login")
 def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
@@ -92,7 +95,10 @@ def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
     correct_password = secrets.compare_digest(credentials.password, "PaC13Nt")
     if not (correct_username and correct_password):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
-    return RedirectResponse('/welcome')
+    session_token = sha256(bytes(f"trudnYPaC13Nt{app.secret_key}")).hexdigest()
+    response.set_cookie(key="session_token", value=session_token)
+    session_tokens.append(session_token)
+    return RedirectResponse('/welcome')	
 
 ### TASK 3 ###########################################################
 
@@ -169,15 +175,3 @@ def create_cookie(response: Response):
     return {"message": "Come to the dark side, we have cookies"}
 
 
-app.secret_key = "very constatn and random secret, best 64 characters"
-
-session_tokens = []
-
-
-
-
-@app.get("/data/")
-def create_cookie(*, response: Response, session_token: str = Cookie(None)):
-    if session_token not in session_tokens:
-        raise HTTPException(status_code=403, detail="Unathorised")
-    response.set_cookie(key="session_token", value=session_token)
