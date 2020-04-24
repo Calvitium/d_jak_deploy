@@ -104,7 +104,7 @@ def get_current_user(response: Response, credentials: HTTPBasicCredentials = Dep
 from fastapi import Cookie
 
 @app.post("/logout")
-def logout(response: Response, session_token: str = Cookie(None)):
+def logout(*, response: Response, session_token: str = Cookie(None)):
 	if(session_token not in session_tokens):
 		raise HTTPException(status_code=401, detail="Unathorised")
 	session_tokens.delete(session_token)
