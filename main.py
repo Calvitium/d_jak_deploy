@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 app = FastAPI()
 app.ID = 0
-app.patients = {"trudnY": "PaC13Nt"}
+app.patients = {}
 app.session_tokens = []
 app.secret_key = "very constatn and random secret, best 64 characters, here it is."
 
@@ -42,7 +42,7 @@ def root():
 
 class GiveMeSomethingRq(BaseModel):
 	name: str
-	surename: str
+	surname: str
 
 class GiveMeSomethingResp(BaseModel):
 	id: int
@@ -53,7 +53,7 @@ def receive_patient(rq: GiveMeSomethingRq):
 	if app.ID not in app.patients.keys():
 		app.patients[app.ID] = rq.dict()
 		app.ID += 1
-	return GiveMeSomethingResp(id=app.ID, patient=rq.dict())
+	#return GiveMeSomethingResp(id=app.ID, patient=rq.dict())
 
 ### TASK 4 ###########################################################
 	
@@ -73,15 +73,15 @@ async def return_patient(pk: int):
 
 ### TASK 1 & 4 #######################################################
 from fastapi.templating import Jinja2Templates
-from fastapi import Cookie
+from fastapi import Cookie, Request
 
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/welcome")
-def do_welcome(session_token: str = Cookie(None)):
+def do_welcome(request: Request, session_token: str = Cookie(None)):
 	if session_token not in app.session_tokens:
 		raise HTTPException(status_code=401, detail="Unathorised")
-	return templates.TemplateResponse("item.html", {"user": "trudnY"})
+	return templates.TemplateResponse("item.html", {"request": request, "user": "trudnY"})
 
 
 ### TASK 2 ###########################################################
@@ -101,8 +101,8 @@ def get_current_user(response: Response, credentials: HTTPBasicCredentials = Dep
     if not (correct_username and correct_password):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
     session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}", encoding='utf8')).hexdigest()
-    response.set_cookie(key="session_token", value=session_token)
     app.session_tokens.append(session_token)
+    response.set_cookie(key="session_token", value=session_token)
     response.headers["Location"] = "/welcome"
     response.status_code = status.HTTP_302_FOUND 
 
@@ -115,5 +115,26 @@ def logout(*, response: Response, session_token: str = Cookie(None)):
 	app.session_tokens.remove(session_token)
 	return RedirectResponse("/")
 
-### TASK 4 ###########################################################
+### TASK 5 ###########################################################
+@app.post("/patient")
+def add_patient(response: Response, patient: GiveMeSomethingRq, session_token: str = Cookie(None)):
+	if session_token not in app.session_tokens:
+		raise HTTPException(status_code=401, detail="Unathorised")
+	receive_patient(patient)
+	response.set_cookie(key="session_token", value=session_token)
+	response.headers["Location"] = "/patient/{id}"
+	response.status_code = status.HTTP_302_FOUND
+    
+
+
+@app.post("/patient/{id}")
+def display_patient(response: Response, id: int, session_token: str = Cookie(None)):
+	if session_token not in app.session_tokens: 
+		raise HTTPException(status_code=401, detail="Unathorised")
+	response.set_cookie(key="session_token", value=session_token)
+	return_patient(id)
+
+
+
+
 
