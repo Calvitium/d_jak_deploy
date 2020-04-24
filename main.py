@@ -103,6 +103,12 @@ def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
 
 ### TASK 3 ###########################################################
 
+@app.post("/logout")
+def logout(response: Response, session_token: str = Cookie(None)):
+	if(session_token not in session_tokens):
+		raise HTTPException(status_code=401, detail="Unathorised")
+	session_tokens.delete(session_token)
+	return RedirectResponse("/")
 
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
