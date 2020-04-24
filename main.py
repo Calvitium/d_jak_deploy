@@ -82,7 +82,7 @@ def do_welcome():
 from hashlib import sha256
 from starlette.responses import RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi import Depends, Response
+from fastapi import Depends, Response, status
 import secrets
 
 security = HTTPBasic()
@@ -96,9 +96,9 @@ def get_current_user(response: Response, credentials: HTTPBasicCredentials = Dep
         raise HTTPException(status_code=401, detail="Incorrect email or password")
     session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}", encoding='utf8')).hexdigest()
     response.set_cookie(key="session_token", value=session_token)
-    session_tokens.append(session_token)
+    app.session_tokens.append(session_token)
     response.headers["Location"] = "/welcome"
-    response.status_code = 302
+    response.status_code = status.HTTP_302_FOUND 
 
 ### TASK 3 ###########################################################
 from fastapi import Cookie
