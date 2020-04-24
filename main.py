@@ -10,8 +10,9 @@ from pydantic import BaseModel
 
 app = FastAPI()
 app.ID = 0
-app.patients = {}
-
+app.patients = {"trudnY": "PaC13Nt"}
+app.session_tokens = []
+app.secret_key = "very constatn and random secret, best 64 characters, here it is."
 
 ### TASK 1 ###########################################################
 
@@ -85,9 +86,7 @@ from fastapi import Depends, Response
 import secrets
 
 security = HTTPBasic()
-app.secret_key = "very constatn and random secret, best 64 characters, here it is."
 
-session_tokens = []
 
 @app.post("/login")
 def get_current_user(response: Response, credentials: HTTPBasicCredentials = Depends(security)):
@@ -99,70 +98,17 @@ def get_current_user(response: Response, credentials: HTTPBasicCredentials = Dep
     response.set_cookie(key="session_token", value=session_token)
     session_tokens.append(session_token)
     response.headers["Location"] = "/welcome"
+    return response
 
 ### TASK 3 ###########################################################
 from fastapi import Cookie
 
 @app.post("/logout")
 def logout(*, response: Response, session_token: str = Cookie(None)):
-	if session_token not in session_tokens:
+	if session_token not in app.session_tokens:
 		raise HTTPException(status_code=401, detail="Unathorised")
-	session_tokens.delete(session_token)
+	app.session_tokens.remove(session_token)
 	return RedirectResponse("/")
 
 ### TASK 4 ###########################################################
-
-
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-from fastapi import Request
-from typing import List
-from hashlib import sha256
-
-templates = Jinja2Templates(directory="templates")
-
-
-@app.get("/items/{id}")
-def read_item(request: Request, id: str):
-    return templates.TemplateResponse("item.html", {"request": request, "my_string": "Wheeeee!", "my_list": [0,1,2,3,4,5]})
-
-
-@app.get("/hello/")
-def hello():
-    return {"hello_world": "hello_world"}
-
-
-@app.get("/simple_path_tmpl/{sample_variable}")
-def simple_path_tmpl(sample_variable: str):
-    print(f"{sample_variable=}")
-    print(type(sample_variable))
-    return {"sample_variable": sample_variable}
-
-
-objects = {
-    1: {"field_a": "a", "field_b": "b"},
-    2: {"field_a": "a", "field_b": "b"},
-    3: {"field_a": "a", "field_b": "b"},
-    # .... #
-}
-
-
-
-@app.get("/v2/simple_path_tmpl/{obj_id}/{field}")
-def simple_path_tmpl(obj_id: int, field: str):
-    print(f"{obj_id=}")
-    print(f"{field=}")
-    return {"field": objects.get(obj_id, {}).get(field)}
-
-
-@app.get("/v2/items/")
-def read_items(*, ads_id: str = Cookie(None)):
-    return {"ads_id": ads_id}
-
-
-@app.post("/cookie-and-object/")
-def create_cookie(response: Response):
-    response.set_cookie(key="fakesession", value="fake-cookie-session-value")
-    return {"message": "Come to the dark side, we have cookies"}
-
 
