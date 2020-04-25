@@ -143,13 +143,13 @@ def display_patient(response: Response, id: int, session_token: str = Cookie(Non
 		return app.patients[id]
 	
 
-@app.delete("/patient/{id}"):
+@app.delete("/patient/{id}")
 def delete_patient(response: Response, id: int, session_token: str = Cookie(None)):
 	if session_token not in app.session_tokens: 
 		raise HTTPException(status_code=401, detail="Unathorised")
 	if id in app.patients.keys():
 		del app.patients[id]
-	
+
 
 
 
