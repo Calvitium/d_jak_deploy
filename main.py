@@ -149,6 +149,9 @@ def delete_patient(response: Response, id: int, session_token: str = Cookie(None
 		raise HTTPException(status_code=401, detail="Unathorised")
 	if id in app.patients.keys():
 		del app.patients[id]
+	else:
+		raise Exception("You have not added patient")
+	response.status_code = status.HTTP_204_NO_CONTENT
 #
 #
 
