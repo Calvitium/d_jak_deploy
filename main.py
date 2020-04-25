@@ -50,11 +50,10 @@ class PatientResp(BaseModel):
 
 #@app.post("/patient", response_model=PatientResp)
 def receive_patient(rq: PatientRq):
-	global app
 	if app.ID not in app.patients.keys():
 		app.patients[app.ID] = rq.dict()
 		app.ID += 1
-#	return PatientResp(id=app.ID, patient=rq.dict())
+	return PatientResp(id=app.ID, patient=rq.dict())
 
 ### TASK 4 ###########################################################
 	
@@ -87,7 +86,6 @@ def greet(request: Request, session_token: str = Cookie(None)):
 
 
 ### TASK 2 ###########################################################
-
 from hashlib import sha256
 from starlette.responses import RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -119,16 +117,16 @@ def logout(*, response: Response, session_token: str = Cookie(None)):
 	return RedirectResponse("/")
 
 ### TASK 5 ###########################################################
-
 @app.post("/patient")
 def add_patient(response: Response, patient: PatientRq, session_token: str = Cookie(None)):
 	if session_token not in app.session_tokens:
 		raise HTTPException(status_code=401, detail="Unathorised")
-	receive_patient(patient)
+	if app.ID not in app.patients.keys():
+		app.patients[app.ID] = patient.dict()
+		app.ID += 1
 	response.set_cookie(key="session_token", value=session_token)
 	response.headers["Location"] = f"/patient/{app.ID-1}"
 	response.status_code = status.HTTP_302_FOUND
-
 
 @app.get("/patient")
 def display_patients(response: Response, session_token: str = Cookie(None)):
@@ -142,7 +140,8 @@ def display_patient(response: Response, id: int, session_token: str = Cookie(Non
 	if session_token not in app.session_tokens: 
 		raise HTTPException(status_code=401, detail="Unathorised")
 	response.set_cookie(key="session_token", value=session_token)
-	return return_patient(id)
+	if id in app.patients.keys():
+		return app.patients[id]
 	
 
 @app.delete("/patient/{id}")
