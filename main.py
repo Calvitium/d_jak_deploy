@@ -48,7 +48,7 @@ class GiveMeSomethingResp(BaseModel):
 	id: int
 	patient: dict
 
-@app.post("/patient", response_model=GiveMeSomethingResp)
+#@app.post("/patient", response_model=GiveMeSomethingResp)
 def receive_patient(rq: GiveMeSomethingRq):
 	if app.ID not in app.patients.keys():
 		app.patients[app.ID] = rq.dict()
@@ -57,7 +57,7 @@ def receive_patient(rq: GiveMeSomethingRq):
 
 ### TASK 4 ###########################################################
 	
-@app.get("/patient/{pk}")
+#@app.get("/patient/{pk}")
 async def return_patient(pk: int):
     if pk in app.patients.keys():
     	return app.patients[pk]
