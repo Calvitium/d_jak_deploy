@@ -126,6 +126,12 @@ def add_patient(response: Response, patient: GiveMeSomethingRq, session_token: s
 	response.set_cookie(key="session_token", value=session_token)
 	response.headers["Location"] = f"/patient/{id}"
 	response.status_code = status.HTTP_302_FOUND
+
+@app.get("/patient")
+def display_patients(response: Response, session_token: str = Cookie(None)):
+	if session_token not in app.session_tokens:
+		raise HTTPException(status_code=401, detail="Unathorised")
+	return app.patients
     
 
 @app.get("/patient/{id}")
@@ -135,6 +141,14 @@ def display_patient(response: Response, id: int, session_token: str = Cookie(Non
 	response.set_cookie(key="session_token", value=session_token)
 	if id in app.patients.keys():
 		return app.patients[id]
+	
+
+@app.delete("/patient/{id}"):
+def delete_patient(response: Response, id: int, session_token: str = Cookie(None)):
+	if session_token not in app.session_tokens: 
+		raise HTTPException(status_code=401, detail="Unathorised")
+	if id in app.patients.keys():
+		del app.patients[id]
 	
 
 
