@@ -117,7 +117,7 @@ def logout(*, response: Response, session_token: str = Cookie(None)):
 
 ### TASK 5 ###########################################################
 @app.post("/patient")
-def add_patient(response: Response, patient: GiveMeSomethingRq, session_token: str = Cookie(None)):
+def add_patient(*, response: Response, patient: GiveMeSomethingRq, session_token: str = Cookie(None)):
 	if session_token not in app.session_tokens:
 		raise HTTPException(status_code=401, detail="Unathorised")
 	if app.ID not in app.patients.keys():
@@ -129,7 +129,7 @@ def add_patient(response: Response, patient: GiveMeSomethingRq, session_token: s
     
 
 @app.post("/patient/{id}")
-def display_patient(response: Response, id: int, session_token: str = Cookie(None)):
+def display_patient(*, response: Response, id: int, session_token: str = Cookie(None)):
 	if session_token not in app.session_tokens: 
 		raise HTTPException(status_code=401, detail="Unathorised")
 	response.set_cookie(key="session_token", value=session_token)
