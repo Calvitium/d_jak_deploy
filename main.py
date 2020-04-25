@@ -50,11 +50,10 @@ class PatientResp(BaseModel):
 
 #@app.post("/patient", response_model=PatientResp)
 def receive_patient(rq: PatientRq):
-	global app
 	if app.ID not in app.patients.keys():
 		app.patients[app.ID] = rq.dict()
 		app.ID += 1
-	return PatientResp(id=app.ID, patient=rq.dict())
+#	return PatientResp(id=app.ID, patient=rq.dict())
 
 ### TASK 4 ###########################################################
 	
