@@ -124,7 +124,7 @@ def add_patient(response: Response, patient: GiveMeSomethingRq, session_token: s
 		app.patients[app.ID] = patient.dict()
 		app.ID += 1
 	response.set_cookie(key="session_token", value=session_token)
-	response.headers["Location"] = "/patient/{id}"
+	response.headers["Location"] = f"/patient/{id}"
 	response.status_code = status.HTTP_302_FOUND
     
 
