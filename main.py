@@ -48,21 +48,21 @@ class GiveMeSomethingResp(BaseModel):
 	id: int
 	patient: dict
 
-@app.post("/patient", response_model=GiveMeSomethingResp)
-def receive_patient(rq: GiveMeSomethingRq):
-	if app.ID not in app.patients.keys():
-		app.patients[app.ID] = rq.dict()
-		app.ID += 1
-	#return GiveMeSomethingResp(id=app.ID, patient=rq.dict())
+#@app.post("/patient", response_model=GiveMeSomethingResp)
+#def receive_patient(rq: GiveMeSomethingRq):
+#	if app.ID not in app.patients.keys():
+#		app.patients[app.ID] = rq.dict()
+#		app.ID += 1
+#	return GiveMeSomethingResp(id=app.ID, patient=rq.dict())
 
 ### TASK 4 ###########################################################
 	
-@app.get("/patient/{pk}")
-async def return_patient(pk: int):
-    if pk in app.patients.keys():
-    	return app.patients[pk]
-    else:
-    	raise HTTPException(status_code=204, detail="Item not found")
+#@app.get("/patient/{pk}")
+#async def return_patient(pk: int):
+#    if pk in app.patients.keys():
+#    	return app.patients[pk]
+#    else:
+#    	raise HTTPException(status_code=204, detail="Item not found")
 
 ######################################################################
 ######################################################################
