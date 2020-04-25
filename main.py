@@ -79,14 +79,13 @@ from fastapi import Cookie, Request
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/welcome")
-def greet(request: Request, session_token: str = Cookie(None)):
+def do_welcome(request: Request, session_token: str = Cookie(None)):
 	if session_token not in app.session_tokens:
 		raise HTTPException(status_code=401, detail="Unathorised")
 	return templates.TemplateResponse("item.html", {"request": request, "user": "trudnY"})
 
 
 ### TASK 2 ###########################################################
-
 from hashlib import sha256
 from starlette.responses import RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -118,7 +117,6 @@ def logout(*, response: Response, session_token: str = Cookie(None)):
 	return RedirectResponse("/")
 
 ### TASK 5 ###########################################################
-
 @app.post("/patient")
 def add_patient(response: Response, patient: PatientRq, session_token: str = Cookie(None)):
 	if session_token not in app.session_tokens:
@@ -142,7 +140,8 @@ def display_patient(response: Response, id: int, session_token: str = Cookie(Non
 	if session_token not in app.session_tokens: 
 		raise HTTPException(status_code=401, detail="Unathorised")
 	response.set_cookie(key="session_token", value=session_token)
-	return return_patient(id)
+	if id in app.patients.keys():
+		return app.patients[id]
 	
 
 @app.delete("/patient/{id}")
@@ -151,8 +150,8 @@ def delete_patient(response: Response, id: int, session_token: str = Cookie(None
 		raise HTTPException(status_code=401, detail="Unathorised")
 	app.patients.pop(id, None)		
 	response.status_code = status.HTTP_204_NO_CONTENT
-
-#####################################################################
+#
+#
 
 
 
