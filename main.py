@@ -70,11 +70,6 @@ async def return_patient(pk: int):
 ######################################################################
 ######################################################################
 
-def redirect(response: Response, path: str):
-	response.set_cookie(key="session_token", value=session_token)
-    response.headers["Location"] = path
-    response.status_code = status.HTTP_302_FOUND 
-
 
 ### TASK 1 & 4 #######################################################
 
@@ -102,14 +97,16 @@ security = HTTPBasic()
 
 
 @app.post("/login")
-def login(response: Response, credentials: HTTPBasicCredentials = Depends(security)):
+def get_current_user(response: Response, credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = secrets.compare_digest(credentials.username, "trudnY")
     correct_password = secrets.compare_digest(credentials.password, "PaC13Nt")
     if not (correct_username and correct_password):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
     session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}", encoding='utf8')).hexdigest()
     app.session_tokens.append(session_token)
-    redirect(response, "/welcome")
+    response.set_cookie(key="session_token", value=session_token)
+    response.headers["Location"] = "/welcome"
+    response.status_code = status.HTTP_302_FOUND 
 
 ### TASK 3 ###########################################################
 
@@ -129,7 +126,9 @@ def add_patient(response: Response, patient: PatientRq, session_token: str = Coo
 	if app.ID not in app.patients.keys():
 		app.patients[app.ID] = patient.dict()
 		app.ID += 1
-	redirect(response, f"/patient/{app.ID-1}")
+	response.set_cookie(key="session_token", value=session_token)
+	response.headers["Location"] = f"/patient/{app.ID-1}"
+	response.status_code = status.HTTP_302_FOUND
 
 @app.get("/patient")
 def display_patients(response: Response, session_token: str = Cookie(None)):
