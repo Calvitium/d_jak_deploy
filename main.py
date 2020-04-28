@@ -86,6 +86,7 @@ def do_welcome(request: Request, session_token: str = Cookie(None)):
 
 
 ### TASK 2 ###########################################################
+
 from hashlib import sha256
 from starlette.responses import RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -117,6 +118,7 @@ def logout(*, response: Response, session_token: str = Cookie(None)):
 	return RedirectResponse("/")
 
 ### TASK 5 ###########################################################
+
 @app.post("/patient")
 def add_patient(response: Response, patient: PatientRq, session_token: str = Cookie(None)):
 	if session_token not in app.session_tokens:
@@ -150,8 +152,34 @@ def delete_patient(response: Response, id: int, session_token: str = Cookie(None
 		raise HTTPException(status_code=401, detail="Unathorised")
 	app.patients.pop(id, None)		
 	response.status_code = status.HTTP_204_NO_CONTENT
-#
-#
+
+
+######################################################################
+######################################################################
+#####################       ASSIGNMENT 4       #######################
+######################################################################
+######################################################################
+
+
+### TASK 1 ###########################################################
+
+import sqlite3
+
+@app.on_event("startup")
+async def startup():
+    app.db_connection = sqlite3.connect('chinook.db')
+
+@app.on_event("shutdown")
+async def shutdown():
+    app.db_connection.close() 
+
+
+@app.get("/tracks")
+async def display_tracks(page: int = 0, per_page: int = 10):
+	app.db_connection.row_factory = sqlite3.Row
+	tracks = app.db_connection.execute(
+		f"SELECT * FROM tracks LIMIT {per_page} OFFSET {page*per_page}").fetchall()
+	return tracks
 
 
 
