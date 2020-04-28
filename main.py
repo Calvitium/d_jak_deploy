@@ -188,8 +188,8 @@ async def display_tracks(page: int = 0, per_page: int = 10):
 async def display_titles(composer_name: str):
 	app.db_connection.row_factory = lambda cursor, row : row[0]
 	tracks = app.db_connection.execute(
-		"SELECT name FROM tracks WHERE composer = ?", (composer_name,)
-		).fetchall()
+		"SELECT name FROM tracks WHERE composer = ? ORDER BY name",
+		(composer_name,)).fetchall()
 	if len(tracks) <= 0:
 		raise HTTPException(status_code=404, detail={"error": "Item not found"})
 	return tracks
