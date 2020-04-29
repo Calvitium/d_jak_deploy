@@ -248,18 +248,29 @@ async def update_customer(customer_id: int, rq: dict = {}):
 	return app.db_connection.execute("SELECT * FROM customers WHERE customerId = ?", 
 											(customer_id,)).fetchone()
 
-### TASK 5 ###########################################################
+### TASK 5 & 6 ###########################################################
 
 @app.get("/sales")
 async def display_stats(category: str):
+	app.db_connection.row_factory = sqlite3.Row	
+	stats = None	
 	if category == "customers":
-		app.db_connection.row_factory = sqlite3.Row
 		stats = app.db_connection.execute('''
-								  SELECT customers.customerId, email, phone, ROUND(SUM(total),2) AS Sum
-								  FROM customers JOIN invoices ON customers.customerId = invoices.customerId
-								  GROUP BY customers.customerId
-								  ORDER BY sum DESC, customers.customerId;
-								  ''').fetchall()
-		return stats
+			SELECT c.customerId, email, phone, ROUND(SUM(total),2) AS Sum
+			FROM customers c 
+				JOIN invoices i ON c.customerId = i.customerId
+			GROUP BY c.customerId
+			ORDER BY Sum DESC, c.customerId;
+			''').fetchall()
+	elif category == "genres":
+		stats = app.db_connection.execute('''
+			SELECT g.name, SUM(quantity) AS Sum
+			FROM genres g 
+				JOIN tracks t ON t.genreId = g.genreId
+				JOIN invoice_items ii ON ii.trackId = t.trackId
+			GROUP BY g.name
+			ORDER BY Sum DESC, g.name
+			''').fetchall()
 	else:
 		raise HTTPException(status_code=404, detail={"error": "Item not found"})
+	return stats
