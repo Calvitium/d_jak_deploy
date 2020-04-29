@@ -251,11 +251,11 @@ async def update_customer(customer_id: int, rq: dict = {}):
 ### TASK 5 ###########################################################
 
 @app.get("/sales/{category}")
-async def display_stats(category: str = ""):
+async def display_stats(category: str):
 	if category == "customers":
 		app.db_connection.row_factory = sqlite3.Row
 		stats = app.db_connection.execute('''
-								  SELECT customers.customerId, email, phone, ROUND(SUM(total),2) AS sum
+								  SELECT customers.customerId, email, phone, ROUND(SUM(total),2) AS Sum
 								  FROM customers JOIN invoices ON customers.customerId = invoices.customerId
 								  GROUP BY customers.customerId
 								  ORDER BY sum DESC, customers.customerId;
