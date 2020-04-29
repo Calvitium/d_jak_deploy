@@ -250,7 +250,7 @@ async def update_customer(customer_id: int, rq: dict = {}):
 
 ### TASK 5 ###########################################################
 
-@app.get("/sales/{category}")
+@app.get("/sales")
 async def display_stats(category: str):
 	if category == "customers":
 		app.db_connection.row_factory = sqlite3.Row
