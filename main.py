@@ -1,44 +1,12 @@
 # main.py
-######################################################################
-######################################################################
-#####################       ASSIGNMENT 1       #######################
-######################################################################
-######################################################################
+##############################################################################################################################
+##############################################################################################################################
+#####################       ASSIGNMENT 1       ###############################################################################
+##############################################################################################################################
+##############################################################################################################################
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
-
-app = FastAPI()
-app.ID = 0
-app.patients = {}
-app.session_tokens = []
-app.secret_key = "very constant and random secret, best 64 characters, here it is."
-
-### TASK 1 ###########################################################
-
-@app.get("/")
-def root():
-    return {"message": "Hello World during the coronavirus pandemic!"}
-
-### TASK 2 ###########################################################
-
-@app.get("/method")
-def root():
-    return {"method": "GET"}
-
-@app.put("/method")
-def root():
-    return {"method": "PUT"}
-
-@app.post("/method")
-def root():
-    return {"method": "POST"}
-
-@app.delete("/method")
-def root():
-    return {"method": "DELETE"}
-
-### TASK 3 ###########################################################
 
 class PatientRq(BaseModel):
 	name: str
@@ -48,6 +16,27 @@ class PatientResp(BaseModel):
 	id: int
 	patient: dict
 
+app = FastAPI()
+app.ID = 0
+app.patients = {}
+
+### TASK 1 ###################################################################################################################
+
+@app.get("/")
+def root():
+    return {"message": "Hello World during the coronavirus pandemic!"}
+
+### TASK 2 ###################################################################################################################
+
+@app.get("/method")
+@app.put("/method")
+@app.post("/method")
+@app.delete("/method")
+def get_method(rq: Request):
+    return {"method": str(rq.method)}
+
+### TASK 3 ###################################################################################################################
+
 #@app.post("/patient", response_model=PatientResp)
 def receive_patient(rq: PatientRq):
 	if app.ID not in app.patients.keys():
@@ -55,7 +44,7 @@ def receive_patient(rq: PatientRq):
 		app.ID += 1
 	return PatientResp(id=app.ID, patient=rq.dict())
 
-### TASK 4 ###########################################################
+### TASK 4 ###################################################################################################################
 	
 #@app.get("/patient/{pk}")
 async def return_patient(pk: int):
@@ -64,19 +53,24 @@ async def return_patient(pk: int):
     else:
     	raise HTTPException(status_code=204, detail="Item not found")
 
-######################################################################
-######################################################################
-#####################       ASSIGNMENT 3       #######################
-######################################################################
-######################################################################
+##############################################################################################################################
+##############################################################################################################################
+#####################       ASSIGNMENT 3       ###############################################################################
+##############################################################################################################################
+##############################################################################################################################
 
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi import Depends, Response, Cookie, status
+from starlette.responses import RedirectResponse
+from fastapi.templating import Jinja2Templates
+from hashlib import sha256
+import secrets
+
+app.secret_key = "very constant and random secret, best 64 characters, here it is."
+app.session_tokens = []
+templates = Jinja2Templates(directory="templates")
 
 ### TASK 1 & 4 #######################################################
-
-from fastapi.templating import Jinja2Templates
-from fastapi import Cookie, Request
-
-templates = Jinja2Templates(directory="templates")
 
 @app.get("/welcome")
 def do_welcome(request: Request, session_token: str = Cookie(None)):
@@ -84,20 +78,10 @@ def do_welcome(request: Request, session_token: str = Cookie(None)):
 		raise HTTPException(status_code=401, detail="Unathorised")
 	return templates.TemplateResponse("item.html", {"request": request, "user": "trudnY"})
 
-
-### TASK 2 ###########################################################
-
-from hashlib import sha256
-from starlette.responses import RedirectResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi import Depends, Response, status
-import secrets
-
-security = HTTPBasic()
-
+### TASK 2 ####################################################################################################################
 
 @app.post("/login")
-def get_current_user(response: Response, credentials: HTTPBasicCredentials = Depends(security)):
+def get_current_user(response: Response, credentials: HTTPBasicCredentials = Depends(HTTPBasic())):
     correct_username = secrets.compare_digest(credentials.username, "trudnY")
     correct_password = secrets.compare_digest(credentials.password, "PaC13Nt")
     if not (correct_username and correct_password):
@@ -108,7 +92,7 @@ def get_current_user(response: Response, credentials: HTTPBasicCredentials = Dep
     response.headers["Location"] = "/welcome"
     response.status_code = status.HTTP_302_FOUND 
 
-### TASK 3 ###########################################################
+### TASK 3 ###################################################################################################################
 
 @app.post("/logout")
 def logout(*, response: Response, session_token: str = Cookie(None)):
@@ -117,7 +101,7 @@ def logout(*, response: Response, session_token: str = Cookie(None)):
 	app.session_tokens.remove(session_token)
 	return RedirectResponse("/")
 
-### TASK 5 ###########################################################
+### TASK 5 ###################################################################################################################
 
 @app.post("/patient")
 def add_patient(response: Response, patient: PatientRq, session_token: str = Cookie(None)):
@@ -154,16 +138,25 @@ def delete_patient(response: Response, id: int, session_token: str = Cookie(None
 	response.status_code = status.HTTP_204_NO_CONTENT
 
 
-######################################################################
-######################################################################
-#####################       ASSIGNMENT 4       #######################
-######################################################################
-######################################################################
-
-
-### TASK 1 ###########################################################
+##############################################################################################################################
+##############################################################################################################################
+#####################       ASSIGNMENT 4       ###############################################################################
+##############################################################################################################################
+##############################################################################################################################
 
 import sqlite3
+
+class AlbumRq(BaseModel):
+	title: str
+	artist_id: int
+
+
+class AlbumResp(BaseModel):
+	AlbumId: int
+	Title: str
+	ArtistId: int
+
+### TASK 1 ###################################################################################################################
 
 @app.on_event("startup")
 async def startup():
@@ -182,7 +175,7 @@ async def display_tracks(page: int = 0, per_page: int = 10):
 		).fetchall()
 	return tracks
 
-### TASK 2 ###########################################################
+### TASK 2 ###################################################################################################################
 
 @app.get("/tracks/composers")
 async def display_titles(composer_name: str):
@@ -194,18 +187,7 @@ async def display_titles(composer_name: str):
 		raise HTTPException(status_code=404, detail={"error": "Item not found"})
 	return tracks
 
-### TASK 3 ###########################################################
-
-class AlbumRq(BaseModel):
-	title: str
-	artist_id: int
-
-
-class AlbumResp(BaseModel):
-	AlbumId: int
-	Title: str
-	ArtistId: int
-
+### TASK 3 ###################################################################################################################
 
 @app.post("/albums", response_model=AlbumResp)
 async def insert_album(response: Response, rq: AlbumRq):
@@ -229,7 +211,7 @@ async def display_album(album_id: int):
 		raise HTTPException(status_code=404, detail={"error": "Item not found"})
 	return AlbumResp(AlbumId=album_id, Title=album[0]["title"], ArtistId=album[0]["artistId"])
 
-### TASK 4 ###########################################################
+### TASK 4 ###################################################################################################################
 
 @app.put("/customers/{customer_id}")
 async def update_customer(customer_id: int, rq: dict = {}):
@@ -248,7 +230,7 @@ async def update_customer(customer_id: int, rq: dict = {}):
 	return app.db_connection.execute("SELECT * FROM customers WHERE customerId = ?", 
 											(customer_id,)).fetchone()
 
-### TASK 5 & 6 ###########################################################
+### TASK 5 & 6 ###################################################################################################################
 
 @app.get("/sales")
 async def display_stats(category: str):
@@ -274,3 +256,5 @@ async def display_stats(category: str):
 	else:
 		raise HTTPException(status_code=404, detail={"error": "Item not found"})
 	return stats
+
+##################################################################################################################################
