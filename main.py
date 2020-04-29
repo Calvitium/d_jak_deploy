@@ -235,7 +235,7 @@ async def display_album(album_id: int):
 async def update_customer(customer_id: int, rq: dict = {}):
 	app.db_connection.row_factory = sqlite3.Row
 	customer = app.db_connection.execute("SELECT * FROM customers WHERE customerId = ?", 
-											(customer_id,)).fetchone()
+											(customer_id,)).fetchall()
 	if len(customer) <= 0:
 		raise HTTPException(status_code=404, detail={"error": "Item not found"})
 	query = "UPDATE customers SET "
