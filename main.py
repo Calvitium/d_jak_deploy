@@ -248,3 +248,18 @@ async def update_customer(customer_id: int, rq: dict = {}):
 	return app.db_connection.execute("SELECT * FROM customers WHERE customerId = ?", 
 											(customer_id,)).fetchone()
 
+### TASK 5 ###########################################################
+
+@app.get("/sales/{category}")
+async def display_stats(category: str = ""):
+	if category == "customers":
+		app.db_connection.row_factory = sqlite3.Row
+		stats = app.db_connection.execute('''
+								  SELECT customers.customerId, email, phone, ROUND(SUM(total),2) AS sum
+								  FROM customers JOIN invoices ON customers.customerId = invoices.customerId
+								  GROUP BY customers.customerId
+								  ORDER BY sum DESC, customers.customerId;
+								  ''').fetchall()
+		return stats
+	else:
+		raise HTTPException(status_code=404, detail={"error": "Item not found"})
